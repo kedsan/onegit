@@ -1,10 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>这是一个测试页</title>
+    <meta charset="utf-8">
+    <title>全部客户</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="__INDEX__/layui/css/layui.css" media="all">
+    <link rel="stylesheet" href="__INDEX__/style/admin.css" media="all">
 </head>
-<body>
-你好，这是一个测试页
+<body layadmin-themealias="default">
+
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">客户列表<span style="float: right">共{$count.total}条数据</span></div>
+        <div class="layui-card-body">
+            <div class="layui-row ">
+                <div class="layui-col-md3">
+                    <a class="layui-btn layuiadmin-btn-role" lay-href="{:url('Customer/add')}" >新增客户</a>
+                </div>
+                <div class="layui-col-md9 ">
+                    <div class="layui-form">
+                        <form action="{:url('Customer/search')}" method="get">
+                            <div class="layui-form-item">
+                                <div class="layui-inline " style="float: right;margin-right: 0px !important;">
+                                    <div class="layui-input-inline">
+                                        <input type="text" name="keywords" lay-verify="required" placeholder="输入关键字查找" class="layui-input">
+                                    </div>
+                                    <div class="layui-btn-group">
+                                        <button type="submit" class="layui-btn ">查找</button>
+                                        <button class="layui-btn ">导出</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <table class="layui-table" lay-skin="line" >
+                <colgroup>
+                    <col width="200">
+                    <col width="200">
+                    <col width="200">
+                    <col width="200">
+                    <col width="200">
+                </colgroup>
+                <thead>
+                <tr>
+                    <th>客户姓名</th>
+                    <th>所属公司</th>
+                    <th>职位</th>
+                    <th>等级</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {volist name="customer" id="vo"}
+                <tr>
+                    <td>{$vo.name}</td>
+                    <td>{$vo.company_name}</td>
+                    <td>{$vo.position}</td>
+                    <td>
+                        {if condition="$vo['level'] eq 1"}
+                        <ul class="layui-rate" readonly="">
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                        </ul>
+                        {elseif condition="$vo['level'] eq 2"}
+                        <ul class="layui-rate" readonly="">
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                        </ul>
+                        {elseif condition="$vo['level'] eq 3"}
+                        <ul class="layui-rate" readonly="">
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                            <li class="layui-inline"><i class="layui-icon layui-icon-rate-solid"></i></li>
+                        </ul>
+                        {/if}
+                    </td>
+
+                    <td>
+                        <a class="layui-btn  layui-btn-xs"  lay-href="{:url('Customer/detail',['id'=>$vo.id])}"><i class="layui-icon layui-icon-search"></i>查看</a>
+                        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-href="{:url('Customer/edit',['id'=>$vo.id])}" ><i class="layui-icon layui-icon-edit"></i>编辑</a>
+                        <a class="is_del layui-btn layui-btn-danger layui-btn-xs" data-id="{$vo.id}" ><i class=" layui-icon layui-icon-delete"></i>删除</a>
+
+                    </td>
+                </tr>
+                {/volist}
+
+                </tbody>
+            </table>
+            <div style="text-align: center;">
+                {$customer->render()}
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="__INDEX__/lib/jquery.min.js"></script>
+<script src="__INDEX__/layui/layui.js"></script>
+
+<script>
+    layui.config({
+        base: '__INDEX__/' //静态资源所在路径
+    }).extend({
+        index: 'lib/index' //主入口模块
+    }).use(['index', 'senior']);
+
+
+    $('.is_del').click(function(){
+        var index=$('.is_del').index(this);
+        var id=$('.is_del').eq(index).attr('data-id');
+
+        layui.use('layer', function () {
+            var layer = layui.layer;
+            layer.prompt({
+                formType: 1
+                , title: '请输入操作密码'
+            }, function (passkey, index) {
+                layer.close(index);
+                layer.confirm('确定删除吗？', function (index) {
+                    $.ajax({
+                        url:"{:url('Customer/del')}",
+                        data:{
+                            "id":id,
+                            "passkey":passkey,
+                        },
+                        type:'post',
+                        dataType:'json',
+                        success:function(response){
+                            layer.msg(response.msg);
+                            if(response.code==10000){
+                                location.reload();
+                            }
+                        }
+                    });
+
+                });
+            });
+
+        });
+    });
+
+</script>
 </body>
 </html>
+
+
